@@ -1,101 +1,127 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import MainLayout from './components/Layout/MainLayout';
+import FormContainer from './components/Form/FormContainer';
+import FormField from './components/Form/FormField';
+import FormButton from './components/Form/FormButton';
+import Pagination from './components/Pagination/Pagination';
+import FormHeader from './components/Form/FormHeader';
+
+const genres = [
+  'Драма', 'Комедия', 'Триллер', 'Боевик', 'Приключения', 'Фантастика',
+  'Фэнтези', 'Ужасы', 'Мелодрама', 'Документальный', 'Анимация', 'Детектив'
+];
+const formats = ['Онлайн-платформа', 'Большой экран', 'Интернет'];
+const countries = [
+  'Россия', 'США', 'Франция', 'Германия', 'Япония', 'Китай', 'Индия',
+  'Великобритания', 'Испания', 'Италия', 'Южная Корея', 'Канада', 'Австралия'
+];
+
+export default function FormPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 5;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const [formData, setFormData] = useState({
+    projectName: '',
+    genre: '',
+    format: '',
+    productionNumber: '',
+    country: 'Россия',
+    cost: '',
+    synopsis: ''
+  });
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('filmForm');
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
+
+  useEffect(() => {
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.projectName) newErrors.projectName = 'Поле обязательно';
+    if (!formData.genre) newErrors.genre = 'Поле обязательно';
+    if (!formData.format) newErrors.format = 'Поле обязательно';
+    if (!formData.country) newErrors.country = 'Поле обязательно';
+    if (!/^\d{3}-\d{3}-\d{3}-\d{2}-\d{3}$/.test(formData.productionNumber)) {
+      newErrors.productionNumber = '';
+    }
+
+    setErrors(newErrors);
+    setIsButtonDisabled(Object.keys(newErrors).length > 0);
+  }, [formData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    localStorage.setItem('filmForm', JSON.stringify(formData));
+    alert('Данные сохранены!');
+  };
+
+  const handleCancel = () => {
+    localStorage.clear();
+    setFormData({
+      projectName: '',
+      genre: '',
+      format: '',
+      productionNumber: '',
+      country: 'Россия',
+      cost: '',
+      synopsis: ''
+    });
+    alert('Все данные были удалены!');
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <MainLayout>
+      <FormContainer>
+        <div className="flex justify-between items-center mb-4">
+          <FormHeader />
+          <FormButton text="Отменить заполнение" variant="secondary" onClick={handleCancel} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <FormField label="Название проекта" name="projectName" placeholder="Название" value={formData.projectName} onChange={handleChange} required error={errors.projectName} />
+          <FormField label="Страна-производитель (копродукция)" name="country" isSelect options={countries} value={formData.country} onChange={handleChange} required error={errors.country} />
+          <FormField label="Жанр" name="genre" isSelect placeholder="Выберите жанр" options={genres} value={formData.genre} onChange={handleChange} required error={errors.genre} />
+          <FormField label="Сведения о сметной стоимости производства фильма на территории Нижегородской области, если есть" name="cost" placeholder="Сметная стоимость" value={formData.cost} onChange={handleChange} />
+          <FormField label="Формат (для онлайн-платформ, большого экрана, интернета, другое)" name="format" isSelect options={formats} value={formData.format} onChange={handleChange} required error={errors.format} />
+          <FormField label="Синопсис" name="synopsis" placeholder="Напишите краткое изложение" value={formData.synopsis} onChange={handleChange} isTextarea />
+          <FormField label="№ УНФ или отсутствует" name="productionNumber" placeholder="890-000-000-00-000" value={formData.productionNumber} onChange={handleChange} error={errors.productionNumber} />
+        </div>
+
+
+        <div className="flex justify-between items-center mt-6 relative">
+
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
+          </div>
+
+
+          <div className="ml-auto">
+            <FormButton text="Следующий шаг" onClick={handleSave} disabled={isButtonDisabled} />
+          </div>
+        </div>
+      </FormContainer>
+    </MainLayout>
   );
 }
